@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 import socket
 import subprocess
 from telegram_bot.utilities import delete_entries_older_than_x_days
-from general_logger import log_to_bot
+from telegram_bot.general_logger import log_to_bot
 
 hostname = socket.gethostname()
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))

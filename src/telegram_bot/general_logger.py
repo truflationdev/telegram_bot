@@ -21,7 +21,7 @@ from telegram_bot.utilities import delete_entries_older_than_x_days, save_logs, 
 import telegram_bot.utilities
 
 # load_dotenv()
-log_file_path = os.getenv('GENERAL_LOGFILE')
+log_file_path = os.getenv('GENERAL_LOGFILE') if os.getenv('GENERAL_LOGFILE') else "telegram_bot_general_logfile"
 log_life = int(os.getenv('LOG_LIFE') if os.getenv('LOG_LIFE') else 3)
 
 
