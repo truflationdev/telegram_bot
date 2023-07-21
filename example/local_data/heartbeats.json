@@ -1,0 +1,7 @@
+{
+    "up_checks": 21600,
+    "system_health_checks": 43200,
+    "server_health_logs": 43200,
+    "daily_checks": 82800,
+    "general_logs": 0
+}

@@ -31,11 +31,11 @@ def log_to_bot(my_json_arg: str) -> None:
 
     :param my_json_arg: the JSON argument to process
     """
-    utitlties.log_to_bot(my_json_arg, log_file_path)
+    utilities.log_to_bot(my_json_arg, log_file_path)
 
 
 if __name__ == '__main__':
     args = docopt.docopt(__doc__)
     my_json_arg = args.get("JSON_ARG", None)
-    utitlties.log_to_bot(my_json_arg, log_file_path)
+    utilities.log_to_bot(my_json_arg, log_file_path)
     delete_entries_older_than_x_days(log_file_path, log_life)
