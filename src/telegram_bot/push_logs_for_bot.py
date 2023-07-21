@@ -42,6 +42,9 @@ def push_logs():
     rsa_id_path = os.getenv('RSA_ID_PATH')
     remote_directory_path = os.getenv('REMOTE_PATH')  # user@host:path_to_directory
 
+    print(f'rsa_id_path: {rsa_id_path}')
+    print(f'remote_directory_path: {remote_directory_path}')
+
     if not rsa_id_path or remote_directory_path:
         print(f'skipping push to remote. Set RSA_ID_PATH and REMOTE_PATH to send to remote.')
         return
