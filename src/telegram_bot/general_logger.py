@@ -17,8 +17,8 @@ import os
 from dotenv import load_dotenv
 import docopt
 import datetime
-from utilities import delete_entries_older_than_x_days, save_logs, load_logs_into_dict, log_to_bot
-import utilities
+from telegram_bot.utilities import delete_entries_older_than_x_days, save_logs, load_logs_into_dict, log_to_bot
+import telegram_bot.utilities
 
 load_dotenv()
 log_file_path = os.getenv('GENERAL_LOGFILE')
@@ -31,11 +31,11 @@ def log_to_bot(my_json_arg: str) -> None:
 
     :param my_json_arg: the JSON argument to process
     """
-    utilities.log_to_bot(my_json_arg, log_file_path)
+    telegram_bot.utilities.log_to_bot(my_json_arg, log_file_path)
 
 
 if __name__ == '__main__':
     args = docopt.docopt(__doc__)
     my_json_arg = args.get("JSON_ARG", None)
-    utilities.log_to_bot(my_json_arg, log_file_path)
+    telegram_bot.utilities.log_to_bot(my_json_arg, log_file_path)
     delete_entries_older_than_x_days(log_file_path, log_life)

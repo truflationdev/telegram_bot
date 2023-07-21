@@ -13,7 +13,7 @@ import os
 from dotenv import load_dotenv
 import socket
 import subprocess
-from utilities import delete_entries_older_than_x_days
+from telegram_bot.utilities import delete_entries_older_than_x_days
 from general_logger import log_to_bot
 
 hostname = socket.gethostname()
