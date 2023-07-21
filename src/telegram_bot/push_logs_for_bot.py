@@ -32,8 +32,9 @@ def run(cmd: str) -> None:
     try:
         ret = subprocess.run(cmd, shell=True, check=True)
     except Exception as e:
-        json_error = '{' + f'"error": "while trying to run command {cmd}, an error occcurred: {e}"' + '}'
-        log_to_bot(json_error)
+        # json_error = '{' + f'"error": "while trying to run command {cmd}, an error occurred: {e}"' + '}'
+        dic_error = {"error": f'"error": "while trying to run command {cmd}, an error occurred: {e}"'}
+        log_to_bot(dic_error)
 
 
 def push_logs():

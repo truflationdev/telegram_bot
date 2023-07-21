@@ -21,8 +21,8 @@ from telegram_bot.utilities import delete_entries_older_than_x_days, save_logs, 
 import telegram_bot.utilities
 
 # load_dotenv()
-log_file_path = os.getenv('GENERAL_LOGFILE') if os.getenv('GENERAL_LOGFILE') else "telegram_bot_general_logfile"
-log_life = int(os.getenv('LOG_LIFE') if os.getenv('LOG_LIFE') else 3)
+# log_file_path = os.getenv('GENERAL_LOGFILE') if os.getenv('GENERAL_LOGFILE') else "telegram_bot_general_logfile"
+# log_life = int(os.getenv('LOG_LIFE') if os.getenv('LOG_LIFE') else 3)
 
 
 def log_to_bot(my_json_arg: str) -> None:
@@ -31,11 +31,15 @@ def log_to_bot(my_json_arg: str) -> None:
 
     :param my_json_arg: the JSON argument to process
     """
+    log_file_path = os.getenv('GENERAL_LOGFILE') if os.getenv('GENERAL_LOGFILE') else "telegram_bot_general_logfile"
     telegram_bot.utilities.log_to_bot(my_json_arg, log_file_path)
 
 
 if __name__ == '__main__':
     args = docopt.docopt(__doc__)
     my_json_arg = args.get("JSON_ARG", None)
+    log_file_path = os.getenv('GENERAL_LOGFILE') if os.getenv('GENERAL_LOGFILE') else "telegram_bot_general_logfile"
+    log_life = int(os.getenv('LOG_LIFE') if os.getenv('LOG_LIFE') else 3)
+
     telegram_bot.utilities.log_to_bot(my_json_arg, log_file_path)
     delete_entries_older_than_x_days(log_file_path, log_life)
