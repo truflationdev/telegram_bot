@@ -41,6 +41,11 @@ def push_logs():
     general_log_file = os.getenv('GENERAL_LOGFILE') if os.getenv('GENERAL_LOGFILE') else "telegram_bot_security_file"
     rsa_id_path = os.getenv('RSA_ID_PATH')
     remote_directory_path = os.getenv('REMOTE_PATH')  # user@host:path_to_directory
+    push_to_remote_flag = os.getenv('PUSH_TO_REMOTE') if os.getenv('PUSH_TO_REMOTE') else False
+
+    if not push_to_remote_flag:
+        print(f'skipping push to remote')
+        return
 
     # Check if all necessary environment variables are set
     required_vars = ['SECURITY_LOGFILE', 'GENERAL_LOGFILE', 'RSA_ID_PATH', 'REMOTE_PATH']
