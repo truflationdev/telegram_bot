@@ -41,24 +41,23 @@ def push_logs():
     general_log_file = os.getenv('GENERAL_LOGFILE') if os.getenv('GENERAL_LOGFILE') else "telegram_bot_security_file"
     rsa_id_path = os.getenv('RSA_ID_PATH')
     remote_directory_path = os.getenv('REMOTE_PATH')  # user@host:path_to_directory
-    push_to_remote_flag = os.getenv('PUSH_TO_REMOTE') if os.getenv('PUSH_TO_REMOTE') else False
 
-    if not push_to_remote_flag:
-        print(f'skipping push to remote')
+    if not rsa_id_path or remote_directory_path:
+        print(f'skipping push to remote. Set RSA_ID_PATH and REMOTE_PATH to send to remote.')
         return
 
     # Check if all necessary environment variables are set
     required_vars = ['SECURITY_LOGFILE', 'GENERAL_LOGFILE', 'RSA_ID_PATH', 'REMOTE_PATH']
     missing_vars = [var for var in required_vars if os.getenv(var) is None]
 
-    if missing_vars:
-        missing_vars_str = ', '.join(missing_vars)
-        log_to_bot(f"Error: The following environment variables are not set: {missing_vars_str}")
-        raise Exception(f"Missing environment variables: {missing_vars_str}")
+    # if missing_vars:
+    #     missing_vars_str = ', '.join(missing_vars)
+    #     log_to_bot(f"Error: The following environment variables are not set: {missing_vars_str}")
+    #     raise Exception(f"Missing environment variables: {missing_vars_str}")
 
     if not os.path.isfile(rsa_id_path):
-        print(f"{rsa_id_path}, the rsa id path, does not exist")
-
+        # print(f"{rsa_id_path}, the rsa id path, does not exist")
+        raise Exception("{rsa_id_path}, the rsa id path, does not exist")
 
     name_to_file = {
         "health_logs": security_log_file,
