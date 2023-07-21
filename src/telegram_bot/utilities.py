@@ -48,7 +48,7 @@ def check_log_file(log_file_path: str) -> None:
 
     """
     if not log_file_path:
-        raise Exception('Environment variable GENERAL_LOGFILE is not set.')
+        raise Exception('log_file_path is falsey.')
     if not os.path.exists(log_file_path):
         with open(log_file_path, 'w') as f:
             json.dump({}, f)

@@ -20,9 +20,9 @@ hostname = socket.gethostname()
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 load_dotenv()
 
-security_log_file = os.getenv('SECURITY_LOGFILE')
-general_log_file = os.getenv('GENERAL_LOGFILE')
-rsa_id_path = os.getenv('RSA_ID_PATH')
+security_log_file = os.getenv('SECURITY_LOGFILE') if os.getenv('SECURITY_LOGFILE') else "telegram_bot_security_file"
+general_log_file = os.getenv('GENERAL_LOGFILE') if os.getenv('GENERAL_LOGFILE') else "telegram_bot_security_file"
+rsa_id_path = os.getenv('RSA_ID_PATH') if os.getenv('RSA_ID_PATH')
 remote_directory_path = os.getenv('REMOTE_PATH')  # user@host:path_to_directory
 
 # Check if all necessary environment variables are set
