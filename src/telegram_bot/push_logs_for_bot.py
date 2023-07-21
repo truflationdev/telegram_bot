@@ -51,6 +51,10 @@ def push_logs():
         log_to_bot(f"Error: The following environment variables are not set: {missing_vars_str}")
         raise Exception(f"Missing environment variables: {missing_vars_str}")
 
+    if not os.path.isfile(rsa_id_path):
+        print(f"{rsa_id_path}, the rsa id path, does not exist")
+
+
     name_to_file = {
         "health_logs": security_log_file,
         "general_logs": general_log_file
