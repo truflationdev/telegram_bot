@@ -1,0 +1,4 @@
+docopt==0.6.2
+python-telegram-bot==20.1
+# pip install python-telegram-bot[job-queue]
+python-dotenv
