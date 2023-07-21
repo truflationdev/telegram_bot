@@ -32,7 +32,7 @@ def run(cmd: str) -> None:
     try:
         ret = subprocess.run(cmd, shell=True, check=True)
     except Exception as e:
-        json_error = f'"error": "while trying to run command {cmd}, an eeror occcurred: {e}"'
+        json_error = f'{"error": "while trying to run command {cmd}, an error occcurred: {e}"}'
         log_to_bot(json_error)
 
 
@@ -57,7 +57,7 @@ def push_logs():
 
     if not os.path.isfile(rsa_id_path):
         # print(f"{rsa_id_path}, the rsa id path, does not exist")
-        raise Exception("{rsa_id_path}, the rsa id path, does not exist")
+        raise Exception(f"{rsa_id_path}, the rsa id path, does not exist")
 
     name_to_file = {
         "health_logs": security_log_file,
