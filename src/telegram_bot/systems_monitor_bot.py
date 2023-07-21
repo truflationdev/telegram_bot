@@ -31,7 +31,7 @@ from telegram import __version__ as TG_VER
 from dotenv import load_dotenv
 from collections import OrderedDict
 from functools import wraps
-from utitlties import str_to_datetime, load_logs_into_dict
+from utilities import str_to_datetime, load_logs_into_dict
 from typing import List, Dict, Tuple, Callable, Union, Any
 
 try:

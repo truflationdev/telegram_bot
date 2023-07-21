@@ -17,8 +17,8 @@ import os
 from dotenv import load_dotenv
 import docopt
 import datetime
-from utitlties import delete_entries_older_than_x_days, save_logs, load_logs_into_dict, log_to_bot
-import utitlties
+from utilities import delete_entries_older_than_x_days, save_logs, load_logs_into_dict, log_to_bot
+import utilities
 
 load_dotenv()
 log_file_path = os.getenv('GENERAL_LOGFILE')

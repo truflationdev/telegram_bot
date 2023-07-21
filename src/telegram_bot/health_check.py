@@ -6,7 +6,7 @@ import os
 
 from collections import OrderedDict
 from dotenv import load_dotenv
-from utitlties import delete_entries_older_than_x_days, load_logs_into_dict, save_logs, log_to_bot
+from utilities import delete_entries_older_than_x_days, load_logs_into_dict, save_logs, log_to_bot
 
 
 load_dotenv()
