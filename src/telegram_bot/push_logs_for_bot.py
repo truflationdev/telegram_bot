@@ -49,19 +49,24 @@ def run(cmd: str) -> None:
         log_to_bot(json_error)
 
 
-name_to_file = {
-    "health_logs": security_log_file,
-    "general_logs": general_log_file
+def push_logs():
+    name_to_file = {
+        "health_logs": security_log_file,
+        "general_logs": general_log_file
     }
 
-for saving_convention, log_file_path in name_to_file.items():
-    file_name = f'{saving_convention}.{hostname}.json'
-    temp_remote_path = os.path.join(remote_directory_path, file_name)
-    cmd = f'scp -i {rsa_id_path} {log_file_path} {temp_remote_path}'
+    for saving_convention, log_file_path in name_to_file.items():
+        file_name = f'{saving_convention}.{hostname}.json'
+        temp_remote_path = os.path.join(remote_directory_path, file_name)
+        cmd = f'scp -i {rsa_id_path} {log_file_path} {temp_remote_path}'
 
-    # Alternative with rsync (uncomment to use):
-    cmd = f'rsync -avz -e "ssh -i {rsa_id_path}" {log_file_path} {temp_remote_path}'
-    # run(cmd)
-    run(cmd)
+        # Alternative with rsync (uncomment to use):
+        cmd = f'rsync -avz -e "ssh -i {rsa_id_path}" {log_file_path} {temp_remote_path}'
+        # run(cmd)
+        run(cmd)
 
-    delete_entries_older_than_x_days(log_file_path)
+        delete_entries_older_than_x_days(log_file_path)
+
+
+if __name__ == "__main__":
+    push_logs()
