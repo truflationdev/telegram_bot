@@ -56,9 +56,6 @@ logger = logging.getLogger(__name__)
 
 # load_dotenv()
 LOG_BOT_KEY = os.getenv('LOG_BOT_KEY')
-
-print(f'LOG_BOT_KEY: {LOG_BOT_KEY}')
-
 my_chat_id = os.getenv('CHAT_ID')
 my_heartbeat_chat_id = os.getenv('HEARTBEAT_CHAT_ID')
 bot_directory = os.getenv('BOT_DIRECTORY')

@@ -18,7 +18,7 @@ from telegram_bot.general_logger import log_to_bot
 
 hostname = socket.gethostname()
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
-load_dotenv()
+# load_dotenv()
 
 security_log_file = os.getenv('SECURITY_LOGFILE') if os.getenv('SECURITY_LOGFILE') else "telegram_bot_security_file"
 general_log_file = os.getenv('GENERAL_LOGFILE') if os.getenv('GENERAL_LOGFILE') else "telegram_bot_security_file"

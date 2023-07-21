@@ -9,8 +9,8 @@ from dotenv import load_dotenv
 from telegram_bot.utilities import delete_entries_older_than_x_days, load_logs_into_dict, save_logs, log_to_bot
 
 
-load_dotenv()
-log_file_path = os.getenv('SECURITY_LOGFILE')
+# load_dotenv()
+log_file_path = os.getenv('SECURITY_LOGFILE') if os.getenv('SECURITY_LOGFILE') else "telegram_bot_security_file"
 
 
 def get_disk_usage():
