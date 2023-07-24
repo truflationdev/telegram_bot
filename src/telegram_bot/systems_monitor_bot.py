@@ -238,11 +238,11 @@ def process_general_log_files(bot_directory: str, my_files: List[str], last_gene
     most_recent_timestamp = last_general_log_check_ts
     for file_name in my_files:
         file_path = os.path.join(bot_directory, file_name)
-        print(f'processing: {file_path}')
-        alert = get_alert_if_late(file_path)
         server_name = ".".join(file_name.split(".json")[0].split(".")[1:])
-        if alert:
-            alarm_messages += f'{server_name}:\n{alert}\n\n'
+        # todo -- we have removed the alert for general logs, as they are not meant to be periodic. However, ..
+        # alert = get_alert_if_late(file_path)
+        # if alert:
+        #     alarm_messages += f'{server_name}:\n{alert}\n\n'
 
         timeseries_data = load_logs_into_dict(file_path)
         heartbeat_logs, error_logs, most_recent_timestamp = check_values(timeseries_data, last_general_log_check_ts,
