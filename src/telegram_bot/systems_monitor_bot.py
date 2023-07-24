@@ -456,8 +456,11 @@ async def check_system_health(context: ContextTypes.DEFAULT_TYPE):
 
         # prep for heartbeats
         my_list = [(x, y) for (x, y) in timeseries_data.items()]
-        latest_values_dict = [y for (x, y) in sorted(my_list, key=lambda x: -x[0])][0]
+        print(f'my_list: \n {my_list}')
+        latest_values_dict = [y for (x, y) in sorted(my_list, key=lambda x: -x[0])]
+        print(f'latest_values_dict: \n {latest_values_dict}')
         latest_values = "\n    ".join(f'{k}: {latest_values_dict[k]}' for k in value_threshold_dict.keys())
+        print(f'latest_values: \n {latest_values}')
         heartbeat_messages += f'{server_name} ==>\n    {latest_values}\n'
 
     # # send to heartbeat monitor, if time threshold has passed
