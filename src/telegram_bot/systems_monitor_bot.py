@@ -303,6 +303,10 @@ async def check_general_logs(context: ContextTypes.DEFAULT_TYPE) -> str:
 
     my_alert_string, heartbeat_messages, alarm_messages, most_recent_timestamp = process_general_log_files(
         bot_directory, my_files, last_general_log_check_ts, alarm_words_for_general_logs)
+
+    print(f'--------------------------------------------------')
+    print(f'\mcheck_general_logs almost finished -- ')
+    print(f'most_recent_timestamp: {most_recent_timestamp}')
     last_general_log_check_ts = most_recent_timestamp
 
     await send_heartbeat_and_alarm_messages(context, heartbeat_messages, alarm_messages, "general_logs", my_chat_id,
