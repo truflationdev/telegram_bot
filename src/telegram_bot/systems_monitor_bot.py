@@ -430,9 +430,10 @@ async def check_system_health(context: ContextTypes.DEFAULT_TYPE):
             continue
 
         # check values via value_threshold_dict
-        for time_stamp, data in timeseries_data.items():
-            # time_object = datetime.datetime.fromtimestamp(float(time_stamp)).isoformat(' ', 'seconds')
-            time_object = str_to_datetime(time_stamp)
+        for time_object_str, data in timeseries_data.items():
+            # time_object = datetime.datetime.fromtimestamp(float(time_object_str)).isoformat(' ', 'seconds')
+            time_object = str_to_datetime(time_object_str)
+            time_stamp = datetime.datetime.timestamp(time_object)
             if float(time_stamp) < last_check_timestamp:
                 continue
             for name, threshold in value_threshold_dict.items():
