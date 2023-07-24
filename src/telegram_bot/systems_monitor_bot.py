@@ -456,7 +456,7 @@ async def check_system_health(context: ContextTypes.DEFAULT_TYPE):
 
         # prep for heartbeats
         my_list = [(x, y) for (x, y) in timeseries_data.items()]
-        print(f'my_list: \n {my_list}')
+        print(f'\n\nmy_list: \n {my_list}')
         latest_values_dict = [y for (x, y) in sorted(my_list, key=lambda x: x[0], reverse=True)]
         print(f'latest_values_dict: \n {latest_values_dict}')
         latest_values = "\n    ".join(f'{k}: {latest_values_dict[k]}' for k in value_threshold_dict.keys())
