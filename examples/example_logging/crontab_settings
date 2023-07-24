@@ -1,0 +1,6 @@
+
+# monitor system health
+*/15 * * * * ~truflation/dataloaders/bots/server_monitoring/check_health.py 2>> ~truflation/dataloaders/logs/cron_errors
+
+# push logs to af.truflation.io for telegram bot. This runs every 15 minutes but offset by 2 minutes (runs later)
+2-59/15 * * * * ~truflation/dataloaders/bots/server_monitoring/push_logs.py 2>> ~truflation/dataloaders/logs/cron_errors
