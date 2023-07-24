@@ -429,11 +429,20 @@ async def check_system_health(context: ContextTypes.DEFAULT_TYPE):
             my_alert_string += f"Error with {file_name}: {e}\n"
             continue
 
+        # convert times
+
+        timeseries_data_copy = timeseries_data.copy()
+
         # check values via value_threshold_dict
-        for time_object_str, data in timeseries_data.items():
+        for time_object_str, data in timeseries_data_copy.items():
             # time_object = datetime.datetime.fromtimestamp(float(time_object_str)).isoformat(' ', 'seconds')
             time_object = str_to_datetime(time_object_str)
             time_stamp = datetime.datetime.timestamp(time_object)
+
+            # del timestamps and only make datetimes
+            del timeseries_data[time_object_str]
+            timeseries_data[time_object] = data
+
             if float(time_stamp) < last_check_timestamp:
                 continue
             for name, threshold in value_threshold_dict.items():
@@ -446,7 +455,7 @@ async def check_system_health(context: ContextTypes.DEFAULT_TYPE):
                     my_alert_string = f'{file_name}: {name} not found.\n'
 
         # prep for heartbeats
-        my_list = [(float(x), y) for (x, y) in timeseries_data.items()]
+        my_list = [(x, y) for (x, y) in timeseries_data.items()]
         latest_values_dict = [y for (x, y) in sorted(my_list, key=lambda x: -x[0])][0]
         latest_values = "\n    ".join(f'{k}: {latest_values_dict[k]}' for k in value_threshold_dict.keys())
         heartbeat_messages += f'{server_name} ==>\n    {latest_values}\n'
