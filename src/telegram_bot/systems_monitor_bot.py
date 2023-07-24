@@ -454,13 +454,13 @@ async def check_system_health(context: ContextTypes.DEFAULT_TYPE):
                 else:
                     my_alert_string = f'{file_name}: {name} not found.\n'
 
-        # prep for heartbeats
+        # Get the most recent health data
         my_list = [(x, y) for (x, y) in timeseries_data.items()]
-        print(f'\n\nmy_list: \n {my_list}')
+        # print(f'\n\nmy_list: \n {my_list}')
         latest_values_dict = [y for (x, y) in sorted(my_list, key=lambda x: x[0], reverse=True)][0]
-        print(f'\n\nlatest_values_dict: \n {latest_values_dict}')
+        # print(f'\n\nlatest_values_dict: \n {latest_values_dict}')
         latest_values = "\n    ".join(f'{k}: {latest_values_dict[k]}' for k in value_threshold_dict.keys())
-        print(f'\n\nlatest_values: \n {latest_values}')
+        # print(f'\n\nlatest_values: \n {latest_values}')
         heartbeat_messages += f'{server_name} ==>\n    {latest_values}\n'
 
     # # send to heartbeat monitor, if time threshold has passed
