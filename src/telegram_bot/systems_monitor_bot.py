@@ -179,6 +179,12 @@ def check_values(timeseries_data: Dict, last_general_log_check_ts: float,
         time_object = str_to_datetime(time_string)
         time_stamp = datetime.datetime.timestamp(time_object)
 
+        print(f'*'*150)
+        print(f'data: \n  {data}')
+        print(f'current time_stamp: {time_stamp}')
+        print(f'last_general_log_check: {last_general_log_check_ts}')
+        print(f'*'*150)
+
         if float(time_stamp) <= last_general_log_check_ts:
             continue
         elif float(time_stamp) > most_recent_timestamp:
