@@ -277,7 +277,7 @@ async def send_heartbeat_and_alarm_messages(context: ContextTypes.DEFAULT_TYPE, 
     """
     ts_now = int(time.time())
 
-    await print_to_heartbeat_chat(context, heartbeat_messages)
+    # await print_to_heartbeat_chat(context, heartbeat_messages)
 
     if len(heartbeat_messages) > 0 and heartbeat_last_message_dic[heartbeat_type] + heartbeat_wait_period_dic.get(
             heartbeat_type, 24 * 3600) < ts_now:
@@ -477,13 +477,15 @@ async def check_system_health(context: ContextTypes.DEFAULT_TYPE):
 #     await update.message.reply_text(update.message.text)
 
 
-async def print_to_heartbeat_chat(context: ContextTypes.DEFAULT_TYPE, help_message="beep beep") -> None:
+async def print_to_heartbeat_chat(context: ContextTypes.DEFAULT_TYPE, heartbeat_message: str="beep beep") -> None:
     """Prints message to heartbeat_chat"""
     # await update.message.reply_text(my_message)
+    if not heartbeat_message:
+        return
     try:
-        await context.bot.send_message(chat_id=my_heartbeat_chat_id, text=help_message, connect_timeout=20)
+        await context.bot.send_message(chat_id=my_heartbeat_chat_id, text=heartbeat_message, connect_timeout=20)
     except Exception as e:
-        print(f'Error in print_to_heartbeat_chat: {e}. \n   Message: {help_message}')
+        print(f'Error in print_to_heartbeat_chat: {e}. \n   Message: {heartbeat_message}')
 
 
 # todo -- allow user to update ?
