@@ -307,6 +307,7 @@ async def check_general_logs(context: ContextTypes.DEFAULT_TYPE) -> str:
     print(f'--------------------------------------------------')
     print(f'\mcheck_general_logs almost finished -- ')
     print(f'most_recent_timestamp: {most_recent_timestamp}')
+
     last_general_log_check_ts = most_recent_timestamp
 
     await send_heartbeat_and_alarm_messages(context, heartbeat_messages, alarm_messages, "general_logs", my_chat_id,
@@ -498,12 +499,12 @@ async def check_system_health(context: ContextTypes.DEFAULT_TYPE):
 async def print_to_heartbeat_chat(context: ContextTypes.DEFAULT_TYPE, heartbeat_message: str="beep beep") -> None:
     """Prints message to heartbeat_chat"""
     # await update.message.reply_text(my_message)
-    if not heartbeat_message:
+    if not heartbeat_message or not heartbeat_message.strip():
         return
     try:
         await context.bot.send_message(chat_id=my_heartbeat_chat_id, text=heartbeat_message, connect_timeout=20)
     except Exception as e:
-        print(f'Error in print_to_heartbeat_chat: {e}. \n   Message: {heartbeat_message}')
+        print(f'Error in print_to_heartbeat_chat: {e}. \n   Message: "{heartbeat_message}"')
 
 
 # todo -- allow user to update ?
