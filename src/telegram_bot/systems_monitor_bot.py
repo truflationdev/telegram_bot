@@ -181,7 +181,7 @@ def check_values(timeseries_data: Dict, last_general_log_check_ts: float,
 
         print(f'*'*150)
         print(f'data: \n  {data}')
-        print(f'current time_stamp: {time_stamp}')
+        print(f'entry timestamp: {time_stamp}')
         print(f'last_general_log_check: {last_general_log_check_ts}')
         print(f'*'*150)
 
