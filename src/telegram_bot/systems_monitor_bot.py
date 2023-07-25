@@ -195,7 +195,7 @@ def check_values(timeseries_data: Dict, last_general_log_check_ts: float,
         my_error_string = "\n".join(
             f'    {key}: {value}' for key, value in data.items() if key in alarm_words_for_general_logs)
         if len(my_error_string):
-            error_logs += f'  {time_object}:\n{my_data_string}\n'
+            error_logs += f'  {time_object}:\n{my_error_string}\n'
 
     return heartbeat_logs, error_logs, most_recent_timestamp
 
