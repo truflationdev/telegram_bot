@@ -169,7 +169,7 @@ def check_values(timeseries_data: Dict, last_general_log_check_ts: float,
     :param alarm_words_for_general_logs: A list of alarm words for general logs
     :return: A tuple containing the file logs, error logs, and the most recent timestamp
     """
-    file_logs = ""
+    heartbeat_logs = ""
     error_logs = ""
     most_recent_timestamp = last_general_log_check_ts
 
@@ -177,27 +177,27 @@ def check_values(timeseries_data: Dict, last_general_log_check_ts: float,
         time_object = str_to_datetime(time_string)
         time_stamp = datetime.datetime.timestamp(time_object)
 
-        print(f'*'*100)
-        print(f'data: \n  {data}')
-        print(f'entry timestamp: {time_stamp}')
-        print(f'last_general_log_check: {last_general_log_check_ts}')
-        print(f'*'*100 + '\n')
+        # print(f'*'*100)
+        # print(f'data: \n  {data}')
+        # print(f'entry timestamp: {time_stamp}')
+        # print(f'last_general_log_check: {last_general_log_check_ts}')
+        # print(f'*'*100 + '\n')
 
         if float(time_stamp) <= last_general_log_check_ts:
             continue
         elif float(time_stamp) > most_recent_timestamp:
             most_recent_timestamp = float(time_stamp)
 
-        my_data_string = "\n".join(f'    {key}: {value}' for key, value in data.items())
+        my_data_string = "\n".join(f'    {key}: {value}' for key, value in data.items() if key not in alarm_words_for_general_logs)
         if len(my_data_string):
-            file_logs += f'  {time_object}:\n{my_data_string}\n'
+            heartbeat_logs += f'  {time_object}:\n{my_data_string}\n'
 
         my_error_string = "\n".join(
             f'    {key}: {value}' for key, value in data.items() if key in alarm_words_for_general_logs)
         if len(my_error_string):
             error_logs += f'  {time_object}:\n{my_data_string}\n'
 
-    return file_logs, error_logs, most_recent_timestamp
+    return heartbeat_logs, error_logs, most_recent_timestamp
 
 
 def get_files_given_key(bot_directory: str, name_key: str) -> List[str]:
@@ -728,11 +728,12 @@ def main() -> None:
         next_time = next_time + datetime.timedelta(days=1)
     seconds_until_daily = int((next_time - utc_now).total_seconds())
 
+    # todo -- update from json file
     job_monitor_system = job_queue.run_repeating(check_system_health, interval=60 * 60,
                                                  first=15)  # todo -- make updateable
     job_up_checks = job_queue.run_repeating(server_up_checks, interval=5 * 60, first=200)
     job_check_fetch_daily = job_queue.run_repeating(daily_checks, interval=24 * 60 * 60, first=seconds_until_daily)
-    job_general_logs = job_queue.run_repeating(check_general_logs, interval=60, first=100)
+    job_general_logs = job_queue.run_repeating(check_general_logs, interval=60, first=20)
 
     # Some bug seems to set these as false
     job_monitor_system.enabled = True
