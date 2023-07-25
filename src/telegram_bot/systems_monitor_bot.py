@@ -46,10 +46,10 @@ from telegram import ForceReply, Update, Bot
 from telegram.ext import Application, CommandHandler, CallbackContext, ContextTypes, MessageHandler, filters
 
 # Enable logging -- built into telegram python bot library
-logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
-)
-logger = logging.getLogger(__name__)
+# logging.basicConfig(
+#     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
+# )
+# logger = logging.getLogger(__name__)
 
 # load_dotenv()
 LOG_BOT_KEY = os.getenv('LOG_BOT_KEY')
