@@ -177,12 +177,6 @@ def check_values(timeseries_data: Dict, last_general_log_check_ts: float,
         time_object = str_to_datetime(time_string)
         time_stamp = datetime.datetime.timestamp(time_object)
 
-        # print(f'*'*100)
-        # print(f'data: \n  {data}')
-        # print(f'entry timestamp: {time_stamp}')
-        # print(f'last_general_log_check: {last_general_log_check_ts}')
-        # print(f'*'*100 + '\n')
-
         if float(time_stamp) <= last_general_log_check_ts:
             continue
         elif float(time_stamp) > most_recent_timestamp:
@@ -236,6 +230,7 @@ def process_general_log_files(bot_directory: str, my_files: List[str], last_gene
     :param alarm_words_for_general_logs: A list of alarm words for general logs
     :return: A tuple containing the alert string, heartbeat messages, alarm messages, and the most recent timestamp
     """
+    print(f'we are processing general log files....')
     my_alert_string = ""
     heartbeat_messages = ""
     alarm_messages = ""
@@ -248,6 +243,8 @@ def process_general_log_files(bot_directory: str, my_files: List[str], last_gene
         # alert = get_alert_if_late(file_path)
         # if alert:
         #     alarm_messages += f'{server_name}:\n{alert}\n\n'
+
+        print(f'processing file: {file_name}')
 
         timeseries_data = load_logs_into_dict(file_path)
         heartbeat_logs, error_logs, most_recent_timestamp_inner = check_values(timeseries_data, last_general_log_check_ts,
