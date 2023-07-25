@@ -230,7 +230,7 @@ def process_general_log_files(bot_directory: str, my_files: List[str], last_gene
     :param alarm_words_for_general_logs: A list of alarm words for general logs
     :return: A tuple containing the alert string, heartbeat messages, alarm messages, and the most recent timestamp
     """
-    print(f'we are processing general log files....')
+
     my_alert_string = ""
     heartbeat_messages = ""
     alarm_messages = ""
@@ -244,7 +244,6 @@ def process_general_log_files(bot_directory: str, my_files: List[str], last_gene
         # if alert:
         #     alarm_messages += f'{server_name}:\n{alert}\n\n'
 
-        print(f'processing file: {file_name}')
 
         timeseries_data = load_logs_into_dict(file_path)
         heartbeat_logs, error_logs, most_recent_timestamp_inner = check_values(timeseries_data, last_general_log_check_ts,
@@ -256,12 +255,6 @@ def process_general_log_files(bot_directory: str, my_files: List[str], last_gene
 
         if most_recent_timestamp_inner > most_recent_timestamp_outer:
             most_recent_timestamp_outer = most_recent_timestamp_inner
-
-        print(f'##  ')
-        print(f'outer; inner; inner > outer')
-        print(most_recent_timestamp_outer)
-        print(most_recent_timestamp_inner)
-        print(most_recent_timestamp_inner > most_recent_timestamp_outer)
 
     return my_alert_string, heartbeat_messages, alarm_messages, most_recent_timestamp_outer
 
@@ -303,18 +296,12 @@ async def check_general_logs(context: ContextTypes.DEFAULT_TYPE) -> str:
     """
     global bot_directory, last_general_log_check_ts, alarm_words_for_general_logs, my_chat_id, heartbeat_last_message_dic, heartbeat_wait_period_dic
 
-    print(f'check_general_logs ....')
-
     my_files = get_files_given_key(bot_directory, "general_logs")
     if not my_files:
         return f"no general_logs logs found\n"
 
     my_alert_string, heartbeat_messages, alarm_messages, most_recent_timestamp = process_general_log_files(
         bot_directory, my_files, last_general_log_check_ts, alarm_words_for_general_logs)
-
-    print(f'\mcheck_general_logs almost finished -- ')
-    print(f'most_recent_timestamp: {most_recent_timestamp}')
-    print(f'--------------------------------------------------\n\n\n')
 
     if most_recent_timestamp > last_general_log_check_ts:
         last_general_log_check_ts = most_recent_timestamp
@@ -323,84 +310,6 @@ async def check_general_logs(context: ContextTypes.DEFAULT_TYPE) -> str:
                                             heartbeat_last_message_dic, heartbeat_wait_period_dic)
 
     return my_alert_string
-
-
-#
-#
-# async def check_general_logs(context):
-#     # get files
-#     global bot_directory
-#     global last_general_log_check_ts
-#
-#     my_files = os.listdir(bot_directory)
-#     my_files = [x for x in my_files if "general_logs" in x]
-#
-#     if not len(my_files):
-#         return f"no general_logs logs found\n"
-#
-#     alerts = []
-#     my_alert_string = ""
-#     my_records = dict()  # (date, value) pairs
-#     heartbeat_messages = ""
-#     alarm_messages = ""
-#     most_recent_timestamp = last_general_log_check_ts
-#
-#     # process general logs files
-#     for file_name in my_files:
-#         last_updated = os.path.getmtime(os.path.join(bot_directory, file_name))
-#         ts_now = time.time()
-#         server_name = ".".join(file_name.split(".json")[0].split(".")[1:])
-#
-#         if ts_now - last_updated > 24*3600: # Warning if not updated in an day
-#             my_alert_string += f'{file_name} has not been updated in { (ts_now - last_updated)//3600} hours.\n'
-#
-#         my_records[file_name] = dict()
-#         try:
-#             with open(os.path.join(bot_directory, file_name), 'r') as infile:
-#                 json_data = infile.read()
-#                 json_data = json_data if json_data else '{}'
-#                 timeseries_data = json.JSONDecoder(object_pairs_hook=OrderedDict).decode(json_data)
-#         except Exception as e:
-#             my_alert_string += f"Error with {file_name}: {e}\n"
-#             continue
-#
-#         # check values via value_threshold_dict
-#         file_logs = ""
-#         error_logs = ""
-#         for time_string, data in timeseries_data.items():
-#             time_object = str_to_datetime(time_string)
-#             time_stamp = datetime.datetime.timestamp(time_object)
-#
-#             if float(time_stamp) <= last_general_log_check_ts:
-#                 continue
-#             elif float(time_stamp) > most_recent_timestamp:
-#                 most_recent_timestamp = float(time_stamp)
-#             my_data_string = "\n".join(f'    {key}: {value}' for key, value in data.items())
-#             if len(my_data_string):
-#                 file_logs += f'  {time_object}:\n{my_data_string}\n'
-#
-#             my_error_string = "\n".join(f'    {key}: {value}' for key, value in data.items() if key in alarm_words_for_general_logs)
-#             if len(my_error_string):
-#                 error_logs += f'  {time_object}:\n{my_data_string}\n'
-#
-#         if len(file_logs):
-#             heartbeat_messages += f'{server_name}:\n{file_logs}\n\n'
-#         if len(error_logs):
-#             alarm_messages += f'{server_name}:\n{error_logs}\n\n'
-#
-#     # send to heartbeat monitor, if time threshold has passed
-#     ts_now = int(time.time())
-#     last_general_log_check_ts = most_recent_timestamp
-#
-#     global heartbeat_last_message_dic
-#     if len(heartbeat_messages) > 0 and heartbeat_last_message_dic["general_logs"] + heartbeat_wait_period_dic.get("general_logs", 24*3600) < ts_now:
-#         await print_to_heartbeat_chat(context, heartbeat_messages)
-#         heartbeat_last_message_dic["general_logs"] = ts_now
-#
-#     if len(alarm_messages):
-#         ret = await context.bot.send_message(chat_id=my_chat_id, text=f'{alarm_messages}')
-#
-#     return my_alert_string
 
 
 async def check_system_health(context: ContextTypes.DEFAULT_TYPE):
@@ -470,20 +379,9 @@ async def check_system_health(context: ContextTypes.DEFAULT_TYPE):
 
         # Get the most recent health data
         my_list = [(x, y) for (x, y) in timeseries_data.items()]
-        # print(f'\n\nmy_list: \n {my_list}')
         latest_values_dict = [y for (x, y) in sorted(my_list, key=lambda x: x[0], reverse=True)][0]
-        # print(f'\n\nlatest_values_dict: \n {latest_values_dict}')
         latest_values = "\n    ".join(f'{k}: {latest_values_dict[k]}' for k in value_threshold_dict.keys())
-        # print(f'\n\nlatest_values: \n {latest_values}')
         heartbeat_messages += f'{server_name} ==>\n    {latest_values}\n'
-
-    # # send to heartbeat monitor, if time threshold has passed
-    # ts_now = int(time.time())
-    # global heartbeat_last_message_dic
-    # if heartbeat_last_message_dic["server_health_logs"] + heartbeat_wait_period_dic.get("server_health_logs",
-    #                                                                                     24 * 3600) < ts_now:
-    #     await print_to_heartbeat_chat(context, "Server Health Stats:\n\n" + heartbeat_messages)
-    #     heartbeat_last_message_dic["server_health_logs"] = ts_now
 
     for file_name, records in my_records.items():
         for name, (ts, record) in records.items():
@@ -492,17 +390,6 @@ async def check_system_health(context: ContextTypes.DEFAULT_TYPE):
 
     await send_heartbeat_and_alarm_messages(context, heartbeat_messages, my_alert_string, "server_health_logs",
                                             my_chat_id, heartbeat_last_message_dic, heartbeat_wait_period_dic)
-
-    # return my_alert_string
-
-
-# async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-#     """Echo the user message."""
-#     print(update)
-#     print(f'user: {update.message.from_user}')
-#     print(f'user: {update.message}')
-#     print(f'user: {update.message.chat.username}')
-#     await update.message.reply_text(update.message.text)
 
 
 async def print_to_heartbeat_chat(context: ContextTypes.DEFAULT_TYPE, heartbeat_message: str="beep beep") -> None:
