@@ -25,6 +25,8 @@ import telegram_bot.utilities
 # log_life = int(os.getenv('LOG_LIFE') if os.getenv('LOG_LIFE') else 3)
 
 
+# todo -- create push through that doesn't rely on saving/loading logs
+
 def log_to_bot(my_json_arg: str) -> None:
     """
     Main function to process the JSON argument and save the logs.

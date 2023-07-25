@@ -13,14 +13,14 @@ import os
 from dotenv import load_dotenv
 import socket
 import subprocess
-from telegram_bot.utilities import delete_entries_older_than_x_days
-from telegram_bot.general_logger import log_to_bot
+from telegram_bot.utilities import delete_entries_older_than_x_days, log_to_bot
+# from telegram_bot.general_logger import log_to_bot
 
 hostname = socket.gethostname()
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 # load_dotenv()
 
-
+# todo -- move this file over to utitlities, update the servers that use it
 
 def run(cmd: str) -> None:
     """
@@ -29,17 +29,19 @@ def run(cmd: str) -> None:
     :param cmd: the command to execute
     """
     # print(f"CMD: {cmd}")
+    general_log_file = os.getenv('GENERAL_LOGFILE') if os.getenv('GENERAL_LOGFILE') else "telegram_bot_general_log"
     try:
         ret = subprocess.run(cmd, shell=True, check=True)
     except Exception as e:
         # json_error = '{' + f'"error": "while trying to run command {cmd}, an error occurred: {e}"' + '}'
         dic_error = {"error": f'"error": "while trying to run command {cmd}, an error occurred: {e}"'}
-        log_to_bot(dic_error)
+        log_to_bot(dic_error, general_log_file)
 
 
 def push_logs():
+    # todo -- review the default variables as they are different across different files
     security_log_file = os.getenv('SECURITY_LOGFILE') if os.getenv('SECURITY_LOGFILE') else "telegram_bot_security_file"
-    general_log_file = os.getenv('GENERAL_LOGFILE') if os.getenv('GENERAL_LOGFILE') else "telegram_bot_security_file"
+    general_log_file = os.getenv('GENERAL_LOGFILE') if os.getenv('GENERAL_LOGFILE') else "telegram_bot_general_log"
     rsa_id_path = os.getenv('RSA_ID_PATH')
     remote_directory_path = os.getenv('REMOTE_PATH')  # user@host:path_to_directory
 
