@@ -177,11 +177,11 @@ def check_values(timeseries_data: Dict, last_general_log_check_ts: float,
         time_object = str_to_datetime(time_string)
         time_stamp = datetime.datetime.timestamp(time_object)
 
-        print(f'*'*150)
+        print(f'*'*100)
         print(f'data: \n  {data}')
         print(f'entry timestamp: {time_stamp}')
         print(f'last_general_log_check: {last_general_log_check_ts}')
-        print(f'*'*150)
+        print(f'*'*100 + '\n')
 
         if float(time_stamp) <= last_general_log_check_ts:
             continue
@@ -200,7 +200,7 @@ def check_values(timeseries_data: Dict, last_general_log_check_ts: float,
     return file_logs, error_logs, most_recent_timestamp
 
 
-def get_general_log_files(bot_directory: str, name_key: str) -> List[str]:
+def get_files_given_key(bot_directory: str, name_key: str) -> List[str]:
     """
     Get all the general log files from the bot directory.
 
@@ -300,19 +300,19 @@ async def check_general_logs(context: ContextTypes.DEFAULT_TYPE) -> str:
     """
     global bot_directory, last_general_log_check_ts, alarm_words_for_general_logs, my_chat_id, heartbeat_last_message_dic, heartbeat_wait_period_dic
 
-    my_files = get_general_log_files(bot_directory, "general_logs")
+    my_files = get_files_given_key(bot_directory, "general_logs")
     if not my_files:
         return f"no general_logs logs found\n"
 
     my_alert_string, heartbeat_messages, alarm_messages, most_recent_timestamp = process_general_log_files(
         bot_directory, my_files, last_general_log_check_ts, alarm_words_for_general_logs)
 
-    print(f'--------------------------------------------------')
     print(f'\mcheck_general_logs almost finished -- ')
     print(f'most_recent_timestamp: {most_recent_timestamp}')
+    print(f'--------------------------------------------------\n\n\n')
 
-    last_general_log_check_ts = most_recent_timestamp if most_recent_timestamp > last_general_log_check_ts\
-        else last_general_log_check_ts # this may already be created in the functions
+    if most_recent_timestamp > last_general_log_check_ts:
+        last_general_log_check_ts = most_recent_timestamp
 
     await send_heartbeat_and_alarm_messages(context, heartbeat_messages, alarm_messages, "general_logs", my_chat_id,
                                             heartbeat_last_message_dic, heartbeat_wait_period_dic)
