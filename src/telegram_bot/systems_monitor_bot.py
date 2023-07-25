@@ -260,6 +260,12 @@ def process_general_log_files(bot_directory: str, my_files: List[str], last_gene
         if most_recent_timestamp_inner > most_recent_timestamp_outer:
             most_recent_timestamp_outer = most_recent_timestamp_inner
 
+        print(f'##  ')
+        print(f'outer; inner; inner > outer')
+        print(most_recent_timestamp_outer)
+        print(most_recent_timestamp_inner)
+        print(most_recent_timestamp_inner > most_recent_timestamp_outer)
+
     return my_alert_string, heartbeat_messages, alarm_messages, most_recent_timestamp_outer
 
 
