@@ -303,6 +303,8 @@ async def check_general_logs(context: ContextTypes.DEFAULT_TYPE) -> str:
     """
     global bot_directory, last_general_log_check_ts, alarm_words_for_general_logs, my_chat_id, heartbeat_last_message_dic, heartbeat_wait_period_dic
 
+    print(f'check_general_logs ....')
+
     my_files = get_files_given_key(bot_directory, "general_logs")
     if not my_files:
         return f"no general_logs logs found\n"
