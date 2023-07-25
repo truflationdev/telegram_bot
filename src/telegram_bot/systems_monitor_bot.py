@@ -23,12 +23,9 @@ import datetime
 import subprocess
 import json
 import requests
-import csv
 import importlib
-import asyncio
 
 from telegram import __version__ as TG_VER
-from dotenv import load_dotenv
 from collections import OrderedDict
 from functools import wraps
 from telegram_bot.utilities import str_to_datetime, load_logs_into_dict
@@ -78,9 +75,11 @@ if missing_vars:
 with open(heartbeat_wait_period_file, 'r') as f:
     heartbeat_wait_period_dic = json.load(f)
 
+# todo -- have heartbeat cliff and wait time load from config file
 
 # Dynamically import the module
 daily_module = importlib.import_module(module_name) if module_name else None
+# todo -- configure modules to load and be run via crontab setting (no need to run only once a day)
 
 last_check_timestamp = 0
 last_general_log_check_ts = 0
@@ -90,7 +89,7 @@ heartbeat_start_time = int(time.time()) + 0  # start after some period to make t
 
 heartbeat_last_message_dic = dict({name: heartbeat_start_time for name in heartbeat_wait_period_dic.keys()})
 
-# General Logs Key Words which send to Urgent chat versus heartbeat
+# General Logs Keywords which send to Urgent chat versus heartbeat
 alarm_words_for_general_logs = ["alert", "error"]
 
 
@@ -144,7 +143,6 @@ async def get_bot_info():
 
 def load_links():
     """ loads in an array of links from a file referenced in an environmental variable """
-    # todo -- pass in links_file_path here and elsewhere
     links_file_path = os.getenv('LINKS_FILE_PATH')
     if not links_file_path:
         raise Exception('LINKS_FILE_PATH environment variable not set')
@@ -241,7 +239,8 @@ def process_general_log_files(bot_directory: str, my_files: List[str], last_gene
     my_alert_string = ""
     heartbeat_messages = ""
     alarm_messages = ""
-    most_recent_timestamp = last_general_log_check_ts
+    most_recent_timestamp_inner = last_general_log_check_ts
+    most_recent_timestamp_outer = last_general_log_check_ts
     for file_name in my_files:
         file_path = os.path.join(bot_directory, file_name)
         server_name = ".".join(file_name.split(".json")[0].split(".")[1:])
@@ -251,13 +250,17 @@ def process_general_log_files(bot_directory: str, my_files: List[str], last_gene
         #     alarm_messages += f'{server_name}:\n{alert}\n\n'
 
         timeseries_data = load_logs_into_dict(file_path)
-        heartbeat_logs, error_logs, most_recent_timestamp = check_values(timeseries_data, last_general_log_check_ts,
+        heartbeat_logs, error_logs, most_recent_timestamp_inner = check_values(timeseries_data, last_general_log_check_ts,
                                                                          alarm_words_for_general_logs)
         if heartbeat_logs:
             heartbeat_messages += f'{server_name}:\n{heartbeat_logs}\n\n'
         if error_logs:
             alarm_messages += f'{server_name}:\n{error_logs}\n\n'
-    return my_alert_string, heartbeat_messages, alarm_messages, most_recent_timestamp
+
+        if most_recent_timestamp_inner > most_recent_timestamp_outer:
+            most_recent_timestamp_outer = most_recent_timestamp_inner
+
+    return my_alert_string, heartbeat_messages, alarm_messages, most_recent_timestamp_outer
 
 
 async def send_heartbeat_and_alarm_messages(context: ContextTypes.DEFAULT_TYPE, heartbeat_messages: str,
@@ -308,7 +311,8 @@ async def check_general_logs(context: ContextTypes.DEFAULT_TYPE) -> str:
     print(f'\mcheck_general_logs almost finished -- ')
     print(f'most_recent_timestamp: {most_recent_timestamp}')
 
-    last_general_log_check_ts = most_recent_timestamp
+    last_general_log_check_ts = most_recent_timestamp if most_recent_timestamp > last_general_log_check_ts\
+        else last_general_log_check_ts # this may already be created in the functions
 
     await send_heartbeat_and_alarm_messages(context, heartbeat_messages, alarm_messages, "general_logs", my_chat_id,
                                             heartbeat_last_message_dic, heartbeat_wait_period_dic)
