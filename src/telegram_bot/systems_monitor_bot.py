@@ -507,6 +507,10 @@ async def delete_bot_messages(update: Update, context: ContextTypes.DEFAULT_TYPE
 async def server_up_checks(context: ContextTypes.DEFAULT_TYPE):
     global links_to_check_uptime
 
+    # skip checking and reporting if no links to check
+    if not len(links_to_check_uptime):
+        return
+
     my_alert_string = ""
     heartbeat_message = ""
 

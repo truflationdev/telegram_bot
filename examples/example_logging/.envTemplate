@@ -4,10 +4,10 @@
 ##   Logger  Settings    ##
 ###########################
 
-# sudo touch <path_to_file> & sudo chown <user> <path_to_file> & sudo chgrp <user> <path_to_file>
+# sudo touch <path_to_file> && sudo chown <user> <path_to_file> && sudo chgrp <user> <path_to_file>
 SECURITY_LOGFILE="<path_to_file>"
 
-# sudo touch <path_to_file> & sudo chown <user> <path_to_file> & sudo chgrp <user> <path_to_file>
+# sudo touch <path_to_file> && sudo chown <user> <path_to_file> && sudo chgrp <user> <path_to_file>
 GENERAL_LOGFILE="<path_to_file>"
 
 # Number of days to let log exist before deleting

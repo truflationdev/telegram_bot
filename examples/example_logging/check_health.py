@@ -8,4 +8,4 @@ load_dotenv()
 sys.path.append('..')
 import telegram_bot.health_check as health_check
 
-health_check. main()
+health_check.main()

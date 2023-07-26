@@ -8,4 +8,4 @@ load_dotenv()
 sys.path.append('..')
 import telegram_bot.push_logs_for_bot as push_logs
 
-push_logs. push_logs()
+push_logs.push_logs()

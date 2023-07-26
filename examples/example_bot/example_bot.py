@@ -8,4 +8,4 @@ load_dotenv()
 sys.path.append('..')
 import telegram_bot.systems_monitor_bot as t_bot
 
-t_bot. main()
+t_bot.main()
