@@ -64,7 +64,7 @@ module_name = os.getenv('DAILY_FUNCTIONS_MODULE')
 # Get the file path from the environment variable
 heartbeat_wait_period_file = os.getenv('HEARTBEAT_WAIT_PERIOD_FILE')
 
-required_vars = ['LOG_BOT_KEY', 'CHAT_ID', 'HEARTBEAT_CHAT_ID', 'BOT_DIRECTORY']
+required_vars = ['LOG_BOT_KEY', 'CHAT_ID', 'HEARTBEAT_CHAT_ID', 'BOT_DIRECTORY', 'HEARTBEAT_WAIT_PERIOD_FILE']
 missing_vars = [var for var in required_vars if os.getenv(var) is None]
 
 if missing_vars:
