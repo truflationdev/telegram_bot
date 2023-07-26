@@ -73,7 +73,7 @@ def push_logs():
         cmd = f'scp -i {rsa_id_path} {log_file_path} {temp_remote_path}'
 
         # Alternative with rsync (uncomment to use):
-        cmd = f'rsync -avz -e "ssh -i {rsa_id_path}" {log_file_path} {temp_remote_path}'
+        cmd = f'rsync -avz -e "ssh -i {rsa_id_path} -o StrictHostKeyChecking=no" {log_file_path} {temp_remote_path}'
         # run(cmd)
         run(cmd)
 
