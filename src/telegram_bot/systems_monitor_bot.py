@@ -156,9 +156,6 @@ def get_link_info():
 
     return links
 
-# todo -- server needs to be restarted if we want to update this
-links_to_check_uptime = get_link_info()
-
 
 def check_values(timeseries_data: Dict, last_general_log_check_ts: float,
                  alarm_words_for_general_logs: List[str]) -> Tuple[str, str, float]:
@@ -436,6 +433,8 @@ every day after fetch >
     • elements that should have been fetched but were not
     • errors in copying databases
 '''
+    links_to_check_uptime = get_link_info()
+
     if len(links_to_check_uptime):
         help_message += '''every 5 minutes > 
     • server up status for''' + "".join("\n        ‣ " + x for x in links_to_check_uptime)
@@ -472,7 +471,7 @@ async def delete_bot_messages(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 
 async def server_up_checks(context: ContextTypes.DEFAULT_TYPE):
-    global links_to_check_uptime
+    links_to_check_uptime = get_link_info()
 
     # skip checking and reporting if no links to check
     if not len(links_to_check_uptime):
