@@ -30,6 +30,7 @@ from collections import OrderedDict
 from functools import wraps
 from telegram_bot.utilities import str_to_datetime, load_logs_into_dict
 from typing import List, Dict, Tuple, Callable, Union, Any
+from dotenv import load_dotenv
 
 try:
     from telegram import __version_info__
@@ -51,7 +52,7 @@ from telegram.ext import Application, CommandHandler, CallbackContext, ContextTy
 # )
 # logger = logging.getLogger(__name__)
 
-# load_dotenv()
+load_dotenv()
 LOG_BOT_KEY = os.getenv('LOG_BOT_KEY')
 my_chat_id = os.getenv('CHAT_ID')
 my_heartbeat_chat_id = os.getenv('HEARTBEAT_CHAT_ID')
@@ -141,7 +142,7 @@ async def get_bot_info():
     return bot_info
 
 
-def load_links():
+def get_link_info():
     """ loads in an array of links from a file referenced in an environmental variable """
     links_file_path = os.getenv('LINKS_FILE_PATH')
     if not links_file_path:
@@ -155,8 +156,8 @@ def load_links():
 
     return links
 
-
-links_to_check_uptime = load_links()
+# todo -- server needs to be restarted if we want to update this
+links_to_check_uptime = get_link_info()
 
 
 def check_values(timeseries_data: Dict, last_general_log_check_ts: float,
@@ -276,8 +277,6 @@ async def send_heartbeat_and_alarm_messages(context: ContextTypes.DEFAULT_TYPE, 
     """
     ts_now = int(time.time())
 
-    # await print_to_heartbeat_chat(context, heartbeat_messages)
-
     if len(heartbeat_messages) > 0 and heartbeat_last_message_dic[heartbeat_type] + heartbeat_wait_period_dic.get(
             heartbeat_type, 24 * 3600) < ts_now:
         await print_to_heartbeat_chat(context, heartbeat_messages)
@@ -312,12 +311,74 @@ async def check_general_logs(context: ContextTypes.DEFAULT_TYPE) -> str:
     return my_alert_string
 
 
-async def check_system_health(context: ContextTypes.DEFAULT_TYPE):
-    # get files
-    global bot_directory
-    my_files = os.listdir(bot_directory)
-    my_files = [x for x in my_files if "health_logs" in x]
+def get_most_recent_values(timeseries_data: Dict[str, Any], value_threshold_dict: Dict[str, int]) -> Dict[str, int]:
+    """
+    Get the most recent values from the time series data.
 
+    :param timeseries_data: The time series data
+    :param value_threshold_dict: The dictionary of value thresholds
+    :return: A dictionary of the most recent values
+    """
+
+    # Convert the timeseries data into a list of tuples and sort it by time in descending order
+    timeseries_data_list = sorted([(str_to_datetime(x), y) for (x, y) in timeseries_data.items()], reverse=True)
+
+    # Get the data associated with the most recent timestamp
+    latest_values_dict = timeseries_data_list[0][1] if timeseries_data_list else {}
+
+    # Only keep the values that are in the value_threshold_dict
+    latest_values_dict = {k: v for (k, v) in latest_values_dict.items() if k in value_threshold_dict}
+
+    return latest_values_dict
+
+
+def process_health_files(my_files: List[str], bot_directory: str, last_check_timestamp: float,
+                         value_threshold_dict: Dict[str, int]) -> Tuple[str, str]:
+    """
+    Process each health file, extract the data, and check the values.
+
+    :param my_files: A list of file names
+    :param bot_directory: The bot directory path
+    :param last_check_timestamp: The last check timestamp
+    :param value_threshold_dict: A dictionary of value thresholds
+    :return: A tuple containing an alert string and heartbeat messages
+    """
+
+    my_records = dict()  # (date, value) pairs
+    my_alert_string = ""
+    heartbeat_messages = ""
+
+    for file_name in my_files:
+        file_path = os.path.join(bot_directory, file_name)
+        alert = get_alert_if_late(file_path)
+        if alert:
+            my_alert_string += alert
+
+        my_records[file_name] = dict()
+        timeseries_data = load_logs_into_dict(file_path)
+
+        server_name = ".".join(file_name.split(".json")[0].split(".")[1:])
+
+        # Get the most recent health data
+        latest_values_dict = get_most_recent_values(timeseries_data, value_threshold_dict)
+        latest_values = "\n    ".join(f'{k}: {latest_values_dict[k]}' for k in value_threshold_dict.keys())
+
+        for name, threshold in value_threshold_dict.items():
+            if name in latest_values_dict:
+                if latest_values_dict[name] > threshold:
+                    my_alert_string += f'{server_name} ==>  {name} ({latest_values_dict[name]}) exceeds threshold ({value_threshold_dict[name]})\n'
+            else:
+                my_alert_string += f'{file_name}: {name} not found.\n'
+
+        server_name = ".".join(file_name.split(".json")[0].split(".")[1:])
+        heartbeat_messages += f'{server_name} ==>\n    {latest_values}\n'
+
+    return my_alert_string, heartbeat_messages
+
+
+async def check_system_health(context: ContextTypes.DEFAULT_TYPE):
+    global last_check_timestamp
+    my_files = get_files_given_key(bot_directory, "health_logs")
     if not len(my_files):
         return f"no health_logs logs found\n"
 
@@ -325,68 +386,10 @@ async def check_system_health(context: ContextTypes.DEFAULT_TYPE):
         "disk_usage": 95,  # todo -- make updateable
     }
 
-    alerts = []
-    my_alert_string = ""
-    global last_check_timestamp
+    my_alert_string, heartbeat_messages = process_health_files(my_files, bot_directory,
+                                                                           last_check_timestamp, value_threshold_dict)
 
-    my_records = dict()  # (date, value) pairs
-    heartbeat_messages = ""
-
-    # process health files
-    for file_name in my_files:
-
-        last_updated = os.path.getmtime(os.path.join(bot_directory, file_name))
-        ts_now = time.time()
-        server_name = ".".join(file_name.split(".json")[0].split(".")[1:])
-
-        if ts_now - last_updated > 3600:  # Warning if not updated in an hour
-            my_alert_string += f'{file_name} has not been updated in {(ts_now - last_updated) // 3600} hours.\n'
-
-        my_records[file_name] = dict()
-        try:
-            with open(os.path.join(bot_directory, file_name), 'r') as infile:
-                json_data = infile.read()
-                json_data = json_data if json_data else '{}'
-                timeseries_data = json.JSONDecoder(object_pairs_hook=OrderedDict).decode(json_data)
-        except Exception as e:
-            my_alert_string += f"Error with {file_name}: {e}\n"
-            continue
-
-        # convert times
-
-        timeseries_data_copy = timeseries_data.copy()
-
-        # check values via value_threshold_dict
-        for time_object_str, data in timeseries_data_copy.items():
-            # time_object = datetime.datetime.fromtimestamp(float(time_object_str)).isoformat(' ', 'seconds')
-            time_object = str_to_datetime(time_object_str)
-            time_stamp = datetime.datetime.timestamp(time_object)
-
-            # del timestamps and only make datetimes
-            del timeseries_data[time_object_str]
-            timeseries_data[time_object] = data
-
-            if float(time_stamp) < last_check_timestamp:
-                continue
-            for name, threshold in value_threshold_dict.items():
-                if name in data:
-                    if data[name] > threshold:
-                        # if newer data
-                        if name not in my_records or my_records[name][0] < time_stamp:
-                            my_records[file_name][name] = (time_stamp, data[name])
-                else:
-                    my_alert_string = f'{file_name}: {name} not found.\n'
-
-        # Get the most recent health data
-        my_list = [(x, y) for (x, y) in timeseries_data.items()]
-        latest_values_dict = [y for (x, y) in sorted(my_list, key=lambda x: x[0], reverse=True)][0]
-        latest_values = "\n    ".join(f'{k}: {latest_values_dict[k]}' for k in value_threshold_dict.keys())
-        heartbeat_messages += f'{server_name} ==>\n    {latest_values}\n'
-
-    for file_name, records in my_records.items():
-        for name, (ts, record) in records.items():
-            server_name = ".".join(file_name.split(".json")[0].split(".")[1:])
-            my_alert_string += f'{server_name} ==>  {name} ({record}) exceeds threshold ({value_threshold_dict[name]})\n'
+    last_check_timestamp = time.time()
 
     await send_heartbeat_and_alarm_messages(context, heartbeat_messages, my_alert_string, "server_health_logs",
                                             my_chat_id, heartbeat_last_message_dic, heartbeat_wait_period_dic)
@@ -466,42 +469,6 @@ async def delete_bot_messages(update: Update, context: ContextTypes.DEFAULT_TYPE
     global messages_created
     for chat_id, message_id in messages_created:
         await context.bot.delete_message(chat_id, message_id)
-
-
-#
-# async def check_system_health(context: ContextTypes.DEFAULT_TYPE):
-#     # await context.bot.send_message(chat_id='504186992', text='One message every 3 seconds')
-#     global last_check_timestamp
-#     ts = time.time()  # timestamp in seconds
-#
-#     alerts = []
-#     res = await check_health_logs(context)
-#     if res:
-#         new_mes = "There are issues with the health of the servers:\n\n" + res
-#         alerts.append(new_mes)
-#     last_check_timestamp = ts
-#
-#     if len(alerts):
-#         for alert in alerts:
-#             global messages_created
-#             try:
-#                 ret = await context.bot.send_message(chat_id=my_chat_id, text=f'{alert}')
-#                 chat_id = ret.chat.id
-#                 message_id = ret.message_id
-#                 messages_created.append((chat_id, message_id))
-#                 time.sleep(3)
-#             except Exception as e:
-#                 print(f'error in check_system_health:\n  {e}')
-#
-#     # heartbeat paused until there are greater diagnostics in system health (currently all logs are covered)
-#     # ignore heartbeats for now
-#     '''
-#     ts_now = int(time.time())
-#     global heartbeat_last_message_dic
-#     if heartbeat_last_message_dic["system_health_check"] + heartbeat_wait_period_dic.get("check_system_health", 24*3600) < ts_now:
-#         await print_to_heartbeat_chat(context, f"check_system_health finished")
-#         heartbeat_last_message_dic["check_system_health"] = ts_now
-#     '''
 
 
 async def server_up_checks(context: ContextTypes.DEFAULT_TYPE):
