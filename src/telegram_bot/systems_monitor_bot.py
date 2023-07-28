@@ -180,7 +180,8 @@ def check_values(timeseries_data: Dict, last_general_log_check_ts: float,
         elif float(time_stamp) > most_recent_timestamp:
             most_recent_timestamp = float(time_stamp)
 
-        my_data_string = "\n".join(f'    {key}: {value}' for key, value in data.items() if key not in alarm_words_for_general_logs)
+        my_data_string = "\n".join(
+            f'    {key}: {value}' for key, value in data.items() if key not in alarm_words_for_general_logs)
         if len(my_data_string):
             heartbeat_logs += f'  {time_object}:\n{my_data_string}\n'
 
@@ -242,10 +243,10 @@ def process_general_log_files(bot_directory: str, my_files: List[str], last_gene
         # if alert:
         #     alarm_messages += f'{server_name}:\n{alert}\n\n'
 
-
         timeseries_data = load_logs_into_dict(file_path)
-        heartbeat_logs, error_logs, most_recent_timestamp_inner = check_values(timeseries_data, last_general_log_check_ts,
-                                                                         alarm_words_for_general_logs)
+        heartbeat_logs, error_logs, most_recent_timestamp_inner = check_values(timeseries_data,
+                                                                               last_general_log_check_ts,
+                                                                               alarm_words_for_general_logs)
         if heartbeat_logs:
             heartbeat_messages += f'{server_name}:\n{heartbeat_logs}\n\n'
         if error_logs:
@@ -255,6 +256,30 @@ def process_general_log_files(bot_directory: str, my_files: List[str], last_gene
             most_recent_timestamp_outer = most_recent_timestamp_inner
 
     return my_alert_string, heartbeat_messages, alarm_messages, most_recent_timestamp_outer
+
+
+async def send_message_as_chunks(context: ContextTypes.DEFAULT_TYPE, chat_id: str, message: str) -> None:
+    message = message.strip()
+    if not message:
+        return
+    if len(message):
+        global messages_created
+        while len(message) > 0:
+            if len(message) > 400:
+                chunk = message[:4000]
+                message = message[4000:]
+            else:
+                chunk = message
+                message = ""
+            try:
+                ret = await context.bot.send_message(chat_id=chat_id, text=f'{chunk}', connect_timeout=20)
+                # chat_id = ret.chat.id
+                message_id = ret.message_id
+                messages_created.append((chat_id, message_id))
+            except Exception as e:
+                print(f'Error in send_message_as_chunks: {e}. \n   Message: "{chunk}"')
+                # todo -- consider logging wtih log_to_bot
+            time.sleep(3)
 
 
 async def send_heartbeat_and_alarm_messages(context: ContextTypes.DEFAULT_TYPE, heartbeat_messages: str,
@@ -274,13 +299,15 @@ async def send_heartbeat_and_alarm_messages(context: ContextTypes.DEFAULT_TYPE, 
     """
     ts_now = int(time.time())
 
+    # todo -- shrink both of these down into chunk sizes
+
     if len(heartbeat_messages) > 0 and heartbeat_last_message_dic[heartbeat_type] + heartbeat_wait_period_dic.get(
             heartbeat_type, 24 * 3600) < ts_now:
-        await print_to_heartbeat_chat(context, heartbeat_messages)
+        await send_message_as_chunks(context, my_heartbeat_chat_id, heartbeat_messages)
         heartbeat_last_message_dic[heartbeat_type] = ts_now
 
     if len(alarm_messages):
-        await context.bot.send_message(chat_id=my_chat_id, text=f'{alarm_messages}')
+        await send_message_as_chunks(context, my_chat_id, alarm_messages)
 
 
 async def check_general_logs(context: ContextTypes.DEFAULT_TYPE) -> str:
@@ -359,7 +386,8 @@ def process_health_files(my_files: List[str], bot_directory: str, last_check_tim
         # Get the most recent health data
         latest_values_dict = get_most_recent_values(timeseries_data, value_threshold_dict)
         # todo -- we can probably simplify the latest_values string creation
-        latest_values = "\n    ".join(f'{k}: {latest_values_dict[k]}' for k in value_threshold_dict.keys() if k in latest_values_dict)
+        latest_values = "\n    ".join(
+            f'{k}: {latest_values_dict[k]}' for k in value_threshold_dict.keys() if k in latest_values_dict)
 
         for name, threshold in value_threshold_dict.items():
             if name in latest_values_dict:
@@ -385,7 +413,7 @@ async def check_system_health(context: ContextTypes.DEFAULT_TYPE):
     }
 
     my_alert_string, heartbeat_messages = process_health_files(my_files, bot_directory,
-                                                                           last_check_timestamp, value_threshold_dict)
+                                                               last_check_timestamp, value_threshold_dict)
 
     last_check_timestamp = time.time()
 
@@ -393,15 +421,9 @@ async def check_system_health(context: ContextTypes.DEFAULT_TYPE):
                                             my_chat_id, heartbeat_last_message_dic, heartbeat_wait_period_dic)
 
 
-async def print_to_heartbeat_chat(context: ContextTypes.DEFAULT_TYPE, heartbeat_message: str="beep beep") -> None:
+async def print_to_heartbeat_chat(context: ContextTypes.DEFAULT_TYPE, heartbeat_message: str = "beep beep") -> None:
     """Prints message to heartbeat_chat"""
-    # await update.message.reply_text(my_message)
-    if not heartbeat_message or not heartbeat_message.strip():
-        return
-    try:
-        await context.bot.send_message(chat_id=my_heartbeat_chat_id, text=heartbeat_message, connect_timeout=20)
-    except Exception as e:
-        print(f'Error in print_to_heartbeat_chat: {e}. \n   Message: "{heartbeat_message}"')
+    await send_message_as_chunks(context, my_heartbeat_chat_id, heartbeat_message)
 
 
 # todo -- allow user to update ?
@@ -419,8 +441,7 @@ async def help_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 /jobs lists all scheduled jobs 
 /run_jobs runs all tasks now -- doesn't affect scheduling 
     '''
-    # await update.message.reply_text(help_message)
-    await context.bot.send_message(chat_id=my_chat_id, text=help_message)
+    await send_message_as_chunks(context, my_chat_id, help_message)
 
 
 async def what_is_tracked(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -440,8 +461,7 @@ every day after fetch >
         help_message += '''every 5 minutes > 
     • server up status for''' + "".join("\n        ‣ " + x for x in links_to_check_uptime)
 
-    # await update.message.reply_text(help_message)
-    await context.bot.send_message(chat_id=my_chat_id, text=help_message)
+    await send_message_as_chunks(context, my_heartbeat_chat_id, help_message)
 
 
 @admins_only
@@ -449,8 +469,7 @@ async def reset(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Reset cursor position of logs."""
     global last_check_timestamp
     last_check_timestamp = 0
-    # await update.message.reply_text("Resetting checked timestamp to 0")
-    await context.bot.send_message(chat_id=my_chat_id, text="Resetting checked timestamp to 0")
+    await send_message_as_chunks(context, my_chat_id, "Resetting checked timestamp to 0")
 
 
 @admins_only
@@ -459,8 +478,7 @@ async def move_to_end(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     global last_check_timestamp
     ts = time.time()  # timestamp in seconds
     last_check_timestamp = ts
-    # await update.message.reply_text("Resetting checked timestamp to end")
-    await context.bot.send_message(chat_id=my_chat_id, text="Resetting checked timestamp to end")
+    await send_message_as_chunks(context, my_chat_id, "Resetting checked timestamp to end")
 
 
 @admins_only
@@ -496,18 +514,9 @@ async def server_up_checks(context: ContextTypes.DEFAULT_TYPE):
             my_alert_string += f'{link} not fetched. Exception:\n    {e}\n'
             heartbeat_message += f'  ❎ {link}\n'
 
-    if my_alert_string:
-        res = await context.bot.send_message(chat_id=my_chat_id, text=f'{my_alert_string}')
+    await send_heartbeat_and_alarm_messages(context, heartbeat_message, my_alert_string, "up_checks",
+                                            my_chat_id, heartbeat_last_message_dic, heartbeat_wait_period_dic)
 
-    ts_now = int(time.time())
-    global heartbeat_last_message_dic
-    if heartbeat_last_message_dic["up_checks"] + heartbeat_wait_period_dic.get("up_checks", 24 * 3600) < ts_now:
-        heartbeat_message = f'{"✅" if successes == len(links_to_check_uptime) else "❎"}' \
-                            + f' {successes}/{len(links_to_check_uptime)} URLs are up.\n\n' \
-                            + heartbeat_message
-
-        await print_to_heartbeat_chat(context, heartbeat_message)
-        heartbeat_last_message_dic["up_checks"] = ts_now
 
 
 @admins_only
@@ -516,8 +525,8 @@ async def get_jobs(update: Update, context: ContextTypes.DEFAULT_TYPE):
     my_message = ""
     for job in context.job_queue.jobs():
         my_message += f'\n{"✅" if job.enabled else "❎"} {job.name} {f", at {job.next_t}" if job.next_t else ""}'
-        # await update.message.reply_text(my_message)
-    await context.bot.send_message(chat_id=my_chat_id, text=f'{my_message}')
+
+    await send_message_as_chunks(context, my_chat_id, my_message)
 
 
 @admins_only
@@ -541,34 +550,16 @@ async def daily_checks(context: ContextTypes.DEFAULT_TYPE):
     if daily_module:
         alerts, heartbeat_messages = await daily_module.main(context)
 
-    if len(alerts):
-        global messages_created
-        for alert in alerts:
-            # buffer to size of 4k
-            while len(alert) > 0:
-                if len(alert) > 400:
-                    chunk = alert[:4000]
-                    alert = alert[4000:]
-                else:
-                    chunk = alert
-                    alert = ""
-                ret = await context.bot.send_message(chat_id=my_chat_id, text=f'{chunk}')
-                chat_id = ret.chat.id
-                message_id = ret.message_id
-                messages_created.append((chat_id, message_id))
-                time.sleep(3)
+    if type(alerts) is list:
+        alerts = "\n".join(alerts)
 
-    ts_now = int(time.time())
-    global heartbeat_last_message_dic
-    if heartbeat_last_message_dic["daily_checks"] + heartbeat_wait_period_dic.get("daily_checks", 24 * 3600) < ts_now:
-        heartbeat_message = f'Daily Checks Finished\n\n  • Duplication\n  • Fetch Error Logs\n  • Unfetched Check'
-        await print_to_heartbeat_chat(context, heartbeat_message)
-        heartbeat_last_message_dic["daily_checks"] = ts_now
+    if type(heartbeat_messages) is list:
+        heartbeats_messages = f"\n".join(msg for msg in heartbeat_messages)
 
-        heartbeats_as_string = f"\n".join(msg for msg in heartbeat_messages)
-        heartbeat_message = f'Custom heartbeat messages: \n\n  {heartbeats_as_string}'
-        await print_to_heartbeat_chat(context, heartbeat_message)
-        heartbeat_last_message_dic["daily_checks"] = ts_now
+    await send_heartbeat_and_alarm_messages(context, heartbeat_messages, alerts, "daily_checks", my_chat_id,
+                                            heartbeat_last_message_dic, heartbeat_wait_period_dic)
+
+
 
 
 def main() -> None:
