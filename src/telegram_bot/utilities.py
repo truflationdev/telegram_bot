@@ -121,7 +121,7 @@ def log_to_bot(input_data: Union[Dict, str], log_file_path: str) -> None:
     save_logs(total_report, log_file_path)
 
     json_object = json.dumps(total_report, indent=4)
-    print(json_object)
+    # print(json_object)
 
 
 def str_to_datetime(input_string: str) -> datetime:

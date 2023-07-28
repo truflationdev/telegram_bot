@@ -19,6 +19,7 @@ import docopt
 import datetime
 from telegram_bot.utilities import delete_entries_older_than_x_days, save_logs, load_logs_into_dict, log_to_bot
 import telegram_bot.utilities
+from typing import Union, Dict
 
 # load_dotenv()
 # log_file_path = os.getenv('GENERAL_LOGFILE') if os.getenv('GENERAL_LOGFILE') else "telegram_bot_general_logfile"
@@ -27,11 +28,11 @@ import telegram_bot.utilities
 
 # todo -- create push through that doesn't rely on saving/loading logs
 
-def log_to_bot(my_json_arg: str) -> None:
+def log_to_bot(input_data: Union[Dict, str]) -> None:
     """
     Main function to process the JSON argument and save the logs.
 
-    :param my_json_arg: the JSON argument to process
+    :param input_data: the data to process, which can be a dictionary, a JSON string, or a non-JSON string
     """
     log_file_path = os.getenv('GENERAL_LOGFILE') if os.getenv('GENERAL_LOGFILE') else "telegram_bot_general_logfile"
     telegram_bot.utilities.log_to_bot(my_json_arg, log_file_path)
