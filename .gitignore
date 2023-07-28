@@ -1,3 +1,6 @@
 .env
 **/.env
 /src/telegram_bot/local_data/
+/examples/rsa_telegram
+**/rsa_telegram
+**/rsa_id
