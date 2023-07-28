@@ -358,7 +358,8 @@ def process_health_files(my_files: List[str], bot_directory: str, last_check_tim
 
         # Get the most recent health data
         latest_values_dict = get_most_recent_values(timeseries_data, value_threshold_dict)
-        latest_values = "\n    ".join(f'{k}: {latest_values_dict[k]}' for k in value_threshold_dict.keys())
+        # todo -- we can probably simplify the latest_values string creation
+        latest_values = "\n    ".join(f'{k}: {latest_values_dict[k]}' for k in value_threshold_dict.keys() if k in latest_values_dict)
 
         for name, threshold in value_threshold_dict.items():
             if name in latest_values_dict:
