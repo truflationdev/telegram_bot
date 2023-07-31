@@ -115,7 +115,7 @@ def log_to_bot(input_data: Union[Dict, str], log_file_path: str) -> None:
 
     data_dict = process_input_data(input_data)
 
-    ts = datetime.datetime.now().isoformat()  # ISO 8601 timestamp
+    ts = datetime.datetime.utcnow().isoformat()  # ISO 8601 timestamp in UTC
     timestamped_report = {ts: data_dict}
 
     total_report = load_logs_into_dict(log_file_path)
