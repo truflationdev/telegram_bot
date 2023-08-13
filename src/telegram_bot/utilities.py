@@ -80,7 +80,7 @@ def save_logs(logs_dict: dict, log_file_path: str) -> None:
     :param logs_dict: the logs to save
     :param log_file_path: str: path to log file
     """
-    with ilock('save_log_lock'):
+    with Ilock('save_log_lock'):
         check_log_file(log_file_path)
         with open(log_file_path, "w") as outfile:
             json.dump(logs_dict, outfile, indent=4)
