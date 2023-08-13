@@ -3,7 +3,7 @@ import json
 import datetime
 import time
 import subprocess
-import fcntl
+from ilock import ILock
 from collections import OrderedDict
 from typing import Union, Dict
 import socket
@@ -80,11 +80,10 @@ def save_logs(logs_dict: dict, log_file_path: str) -> None:
     :param logs_dict: the logs to save
     :param log_file_path: str: path to log file
     """
-    check_log_file(log_file_path)
-    with open(log_file_path, "w") as outfile:
-        fcntl.flock(outfile, fcntl.LOCK_EX)
-        json.dump(logs_dict, outfile, indent=4)
-        fcntl.flock(outfile, fcntl.LOCK_UN)
+    with ilock('save_log_lock'):
+        check_log_file(log_file_path)
+        with open(log_file_path, "w") as outfile:
+            json.dump(logs_dict, outfile, indent=4)
 
 def process_input_data(input_data: Union[Dict, str]) -> Dict:
     """
